@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>나의 공감 온도</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gothic+A1:wght@400;600;800&display=swap">
+<style>
+/* 레이아웃: 한 화면에 질문 하나, 왼쪽(넓은 화면) 또는 위(좁은 화면)에 온도계 */
+:root {
+  --bg: #f4f6f9;
+  --ink: #17202b;
+  --soft: #5d6876;
+  --line: #d9dee6;
+  --mercury: #e0362c;
+  --cool: #2f6fd6;
+  --surface: #ffffff;
+  --display: "Black Han Sans", "Malgun Gothic", sans-serif;
+  --body: "Gothic A1", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --ink: #eef1f5; --soft: #9aa5b3; --line: #2b3440;
+    --mercury: #ff5a4e; --cool: #6a9bff; --surface: #1a212b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --ink: #eef1f5; --soft: #9aa5b3; --line: #2b3440;
+  --mercury: #ff5a4e; --cool: #6a9bff; --surface: #1a212b; color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body);
+  font-size: 18px; line-height: 1.6; word-break: keep-all;
+}
+.wrap {
+  min-height: 100%; box-sizing: border-box; max-width: 1080px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: clamp(24px, 6vh, 72px);
+  display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: clamp(24px, 6vw, 88px); align-items: center;
+}
+.thermo { display: flex; justify-content: center; }
+.thermo svg { width: 120px; height: auto; max-width: 100%; }
+.main { min-width: 0; display: flex; flex-direction: column; gap: 28px; }
+h1, h2 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h1 { font-size: clamp(44px, 8vw, 88px); line-height: 1.05; }
+h2 { font-size: clamp(28px, 4.4vw, 46px); line-height: 1.25; }
+p { margin: 0; max-width: 36em; }
+.lead { font-size: clamp(18px, 2.2vw, 22px); color: var(--soft); }
+.note { font-size: 15px; color: var(--soft); }
+.step { font-size: 15px; font-weight: 600; color: var(--soft); letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+.bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--mercury); transition: width .3s ease; }
+.opts { display: flex; flex-direction: column; gap: 12px; }
+.opts.scale { flex-direction: row; flex-wrap: wrap; }
+.opt {
+  font: inherit; font-size: 19px; text-align: left; color: var(--ink); background: var(--surface);
+  border: 2px solid var(--line); border-radius: 14px; padding: 16px 22px; cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.opts.scale .opt { flex: 1 1 0; min-width: 96px; text-align: center; padding: 16px 8px; font-size: 16px; }
+.opts.scale .opt b { display: block; font-family: var(--display); font-weight: 400; font-size: 30px; line-height: 1.1; }
+.opt:hover { border-color: var(--soft); }
+.opt[aria-pressed="true"] { border-color: var(--mercury); }
+.opt:focus-visible, .btn:focus-visible, .link:focus-visible { outline: 3px solid var(--cool); outline-offset: 3px; }
+.who { font-size: 16px; font-weight: 600; color: var(--soft); }
+.say { font-size: clamp(22px, 3vw, 30px); font-weight: 800; line-height: 1.4; }
+.row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.btn {
+  font: inherit; font-weight: 800; font-size: 20px; color: #fff; background: var(--mercury);
+  border: 0; border-radius: 999px; padding: 16px 40px; cursor: pointer;
+}
+.link { font: inherit; font-size: 16px; color: var(--soft); background: none; border: 0; padding: 8px 0; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
+.temp { font-family: var(--display); font-size: clamp(88px, 16vw, 168px); line-height: .95; color: var(--mercury); font-variant-numeric: tabular-nums; }
+.temp small { font-size: .42em; margin-left: .06em; }
+.type { font-family: var(--display); font-size: clamp(32px, 5vw, 52px); line-height: 1.15; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; border-top: 2px solid var(--line); padding-top: 24px; }
+.pair h3 { margin: 0 0 6px; font-size: 16px; color: var(--soft); font-weight: 600; letter-spacing: .04em; }
+.pair p { font-size: 18px; }
+.hands { font-size: 17px; font-weight: 600; }
+@media (max-width: 720px) {
+  .wrap { grid-template-columns: 1fr; align-items: start; gap: 20px; }
+  .thermo svg { width: 64px; }
+  .pair { grid-template-columns: 1fr; gap: 18px; }
+  .opts.scale .opt { min-width: 0; flex-basis: 18%; font-size: 13px; padding: 12px 4px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<style>html,body{margin:0}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="thermo" aria-hidden="true">
+    <svg viewBox="0 0 120 420" id="thermoSvg">
+      <rect x="40" y="10" width="40" height="330" rx="20" fill="var(--surface)" stroke="var(--line)" stroke-width="3"/>
+      <circle cx="60" cy="370" r="40" fill="var(--surface)" stroke="var(--line)" stroke-width="3"/>
+      <rect id="mercury" x="50" y="200" width="20" height="170" rx="10" fill="var(--mercury)" style="transition: y .9s ease, height .9s ease"/>
+      <circle cx="60" cy="370" r="30" fill="var(--mercury)"/>
+      <g id="ticks" font-family="Gothic A1, sans-serif" font-size="15" font-weight="600" fill="var(--soft)"></g>
+    </svg>
+  </div>
+  <main class="main" id="app" aria-live="polite"></main>
+</div>
+
+<script>
+// 온도 문항: 1~5점, 합계 6~30 → 34.0~39.0℃
+const FEEL = [
+  "친구 표정만 보고도 기분이 안 좋다는 걸 알아챈 적이 많다.",
+  "드라마나 영화를 보다가 등장인물 때문에 울컥한 적이 있다.",
+  "누가 고민을 말하면 나도 모르게 그 사람 입장이 되어 생각해 본다.",
+  "단톡방에서 누가 갑자기 말이 없어지면 신경이 쓰인다.",
+  "내 생각과 다른 이야기도 \"그럴 수 있지\" 하며 끝까지 듣는 편이다.",
+  "다른 사람이 힘들어 보이면 내 기분도 같이 가라앉는다."
+];
+// 유형 문항: h = 마음 먼저, s = 해결 먼저 (보기 순서는 섞어 둠)
+const TALK = [
+  { who: "친구가 말한다", say: "나 오늘 면접 완전 망한 것 같아…",
+    a: [["h", "괜찮아? 많이 긴장했겠다."], ["s", "어떤 질문이 어려웠어? 다음엔 같이 준비해 보자."]] },
+  { who: "친구가 말한다", say: "나 우울해서 빵 샀어.",
+    a: [["s", "무슨 빵 샀어?"], ["h", "무슨 일 있었어? 왜 우울해?"]] },
+  { who: "가족이 말한다", say: "휴대폰 떨어뜨려서 액정 다 깨졌어.",
+    a: [["h", "헉, 다친 데는 없어? 속상하겠다."], ["s", "가까운 서비스센터부터 찾아볼게."]] },
+  { who: "약속에 30분 늦은 친구가 말한다", say: "길이 너무 막혔어, 미안!",
+    a: [["s", "다음엔 지하철 타는 게 낫겠다."], ["h", "오느라 고생했다, 일단 앉아."]] },
+  { who: "옆자리 동기가 말한다", say: "오늘 배운 게 너무 많아서 머리 터질 것 같아.",
+    a: [["h", "오늘 진짜 정신없었지, 나도 그래."], ["s", "헷갈리는 것만 같이 정리해 볼까?"]] },
+  { who: "여행 간 친구가 전화로 말한다", say: "숙소에 왔는데 예약이 안 돼 있대!",
+    a: [["s", "근처에 빈방 있는지 지금 같이 찾아보자."], ["h", "헐, 진짜 당황했겠다. 괜찮아?"]] }
+];
+const SCALE = [[1, "전혀 아니다"], [2, "아닌 편"], [3, "보통"], [4, "그런 편"], [5, "매우 그렇다"]];
+const TOTAL = FEEL.length + TALK.length;
+
+const TEMP_TEXT = [
+  [35.5, "차분한 온도", "감정에 쉽게 휩쓸리지 않는 침착한 사람. 흔들리는 사람 옆에서 중심을 잡아 줍니다."],
+  [37.0, "딱 좋은 체온", "상대 마음을 적당한 거리에서 알아보는 사람. 오래 함께 있어도 편안한 온도입니다."],
+  [38.2, "따뜻한 온도", "상대 기분이 금방 전해지는 사람. 곁에 있으면 이야기가 술술 나옵니다."],
+  [99, "뜨거운 온도", "남의 일도 내 일처럼 느끼는 사람. 그 마음 덕분에 상대가 혼자가 아니라고 느낍니다."]
+];
+const TYPES = {
+  h: { name: "마음 먼저형", good: "상대가 '내 말을 들어주는구나' 하고 느끼게 합니다.",
+       tip: "마음을 알아준 다음, '그래서 무엇을 도와줄지'까지 말해 주기." },
+  s: { name: "해결 먼저형", good: "빠르고 든든합니다. 문제가 실제로 풀립니다.",
+       tip: "해결 방법을 말하기 전에, 상대가 말한 상황을 한 번 짚어 주기." },
+  b: { name: "균형형", good: "알아주기와 도와주기를 둘 다 챙깁니다.",
+       tip: "지금처럼 '먼저 알아주고, 이어서 돕기' 순서를 지키기." }
+};
+
+let i = -1, feel = [], talk = [];
+const app = document.getElementById("app");
+
+// 온도계 눈금
+(function () {
+  const g = document.getElementById("ticks");
+  for (let t = 34; t <= 39; t++) {
+    const y = yOf(t);
+    g.insertAdjacentHTML("beforeend",
+      `<line x1="82" x2="94" y1="${y}" y2="${y}" stroke="var(--soft)" stroke-width="2"/><text x="98" y="${y + 5}">${t}</text>`);
+  }
+})();
+function yOf(t) { return 320 - (t - 34) / 5 * 290; } // 34℃ → y320, 39℃ → y30
+function setMercury(t) {
+  const m = document.getElementById("mercury"), y = yOf(Math.max(34, Math.min(39, t)));
+  m.setAttribute("y", y); m.setAttribute("height", 370 - y);
+}
+function progressTemp() { // 문항이 진행될수록 수은이 조금씩 올라감
+  setMercury(34 + 2.5 * Math.max(0, i) / TOTAL);
+}
+
+function render() {
+  if (i < 0) return start();
+  if (i >= TOTAL) return result();
+  progressTemp();
+  const pct = Math.round(i / TOTAL * 100);
+  const head = `<div class="step">${i + 1} / ${TOTAL}</div><div class="bar"><i style="width:${pct}%"></i></div>`;
+  if (i < FEEL.length) {
+    const cur = feel[i];
+    app.innerHTML = `${head}
+      <h2>${FEEL[i]}</h2>
+      <div class="opts scale" role="group" aria-label="얼마나 그런가요">
+        ${SCALE.map(([v, l]) => `<button class="opt" id="o${v}" aria-pressed="${cur === v}" data-v="${v}"><b>${v}</b>${l}</button>`).join("")}
+      </div>
+      <div class="row"><button class="link" id="back">이전 문항</button></div>`;
+    app.querySelectorAll(".opt").forEach(b => b.onclick = () => { feel[i] = +b.dataset.v; next(b); });
+  } else {
+    const k = i - FEEL.length, q = TALK[k], cur = talk[k];
+    app.innerHTML = `${head}
+      <p class="who">${q.who}</p>
+      <p class="say">"${q.say}"</p>
+      <p class="note">나라면 먼저 어떤 말이 나올까요?</p>
+      <div class="opts" role="group" aria-label="나의 대답">
+        ${q.a.map(([v, l], n) => `<button class="opt" id="t${n}" aria-pressed="${cur === v}" data-v="${v}">${l}</button>`).join("")}
+      </div>
+      <div class="row"><button class="link" id="back">이전 문항</button></div>`;
+    app.querySelectorAll(".opt").forEach(b => b.onclick = () => { talk[k] = b.dataset.v; next(b); });
+  }
+  document.getElementById("back").onclick = () => { i--; render(); };
+}
+function next(b) {
+  b.setAttribute("aria-pressed", "true");
+  setTimeout(() => { i++; render(); }, 220);
+}
+
+function start() {
+  setMercury(36.5);
+  app.innerHTML = `
+    <h1>나의<br>공감 온도</h1>
+    <p class="lead">평소의 나를 떠올리며 12문항에 답해 주세요. 약 3분 걸립니다.</p>
+    <p class="note">재미로 보는 놀이용 테스트입니다. 성격 진단이 아니고, 이름도 결과도 어디에 저장되지 않습니다.</p>
+    <div class="row"><button class="btn" id="go">시작하기</button></div>`;
+  document.getElementById("go").onclick = () => { i = 0; feel = []; talk = []; render(); };
+}
+
+function result() {
+  const sum = feel.reduce((a, b) => a + b, 0);
+  const temp = Math.round((34 + (sum - FEEL.length) / (FEEL.length * 4) * 5) * 10) / 10;
+  const h = talk.filter(v => v === "h").length;
+  const type = h >= 4 ? TYPES.h : h <= 2 ? TYPES.s : TYPES.b;
+  const band = TEMP_TEXT.find(([max]) => temp < max);
+  setMercury(temp);
+  app.innerHTML = `
+    <p class="step">나의 공감 온도</p>
+    <div class="temp">${temp.toFixed(1)}<small>℃</small></div>
+    <p class="lead"><strong>${band[1]}</strong> · ${band[2]}</p>
+    <div class="type">${type.name}</div>
+    <div class="pair">
+      <div><h3>나의 강점</h3><p>${type.good}</p></div>
+      <div><h3>상담에서 챙길 한 가지</h3><p>${type.tip}</p></div>
+    </div>
+    <p class="hands">강사님이 유형을 부르면 손을 들어 주세요.</p>
+    <p class="note">MBTI와 다르게 나와도 괜찮습니다. 오늘의 대답일 뿐, 높은 온도가 더 좋은 것도 아닙니다.</p>
+    <div class="row"><button class="link" id="again">처음부터 다시 하기</button></div>`;
+  document.getElementById("again").onclick = () => { i = -1; render(); };
+}
+
+// 키보드: 숫자 1~5, 대화 문항은 1~2
+document.addEventListener("keydown", e => {
+  const n = +e.key; if (!n || i < 0 || i >= TOTAL) return;
+  const b = app.querySelectorAll(".opt")[n - 1]; if (b) b.click();
+});
+render();
+</script>
+
+</body>
+</html>
